@@ -1,0 +1,11 @@
+version: "3.3"
+
+services:
+  main:
+    build:
+      context: .
+      dockerfile: ./dockerfile
+    network_mode: host
+    volumes:
+      - ./:/app
+    command: python -m src.main

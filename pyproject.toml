@@ -1,0 +1,57 @@
+[project]
+authors = [
+  "Zangwei <zangwei@comp.nus.edu.sg>",
+]
+description = ""
+documentation = "https://github.com/zhengzangw/"
+homepage = "https://github.com/zhengzangw/"
+license = "MIT"
+name = ""
+python = "3.8"
+readme = "README.md"
+repository = "https://github.com/zhengzangw/"
+
+[tool]
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version = "0.0.1"
+
+[tool.black]
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+  | foo.py           # also separately exclude a file named foo.py in
+                     # the root of the project
+)
+'''
+include = '\.pyi?$'
+line-length = 99
+target_version = ['py36']
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+exclude = ".git,__pycache__,docs/source/conf.py,old,build,dist"
+extend-ignore = "E203, E501, E731, F401, F811"
+max-complexity = 10
+max-line-length = 99
+
+[tool.coverage.run]
+omit = [
+  "src/client/data/*",
+  "src/client/model/*",
+  "src/proto/interface_pb2.py",
+]
