@@ -23,6 +23,13 @@ Install dependencies
 pip install -r requirements.txt
 ```
 
+Run scripts
+
+```bash
+python -m src.main
+python -m src.inference
+```
+
 ## Contribution
 
 See [How-to-Contribute](contributing.md)
