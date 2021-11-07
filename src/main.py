@@ -12,10 +12,13 @@ import torch.optim as optim
 from tqdm import tqdm
 
 from .dataset_nlp import load_multi30k
-from .model import Decoder, Encoder, Seq2Seq
+from .model import get_model
 
 SEED = 1234
 device = "cuda:0"
+
+N_EPOCHS = 10
+CLIP = 1
 
 
 def init_seed(seed=SEED):
@@ -24,17 +27,6 @@ def init_seed(seed=SEED):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
-
-
-ENC_EMB_DIM = 256
-DEC_EMB_DIM = 256
-HID_DIM = 512
-N_LAYERS = 2
-ENC_DROPOUT = 0.5
-DEC_DROPOUT = 0.5
-
-N_EPOCHS = 10
-CLIP = 1
 
 
 def epoch_time(start_time, end_time):
@@ -120,12 +112,7 @@ def main(args):
     INPUT_DIM = dataset_info["input_dim"]
     OUTPUT_DIM = dataset_info["output_dim"]
     TRG_PAD_IDX = dataset_info["output_pad"]
-
-    enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
-    dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
-
-    model = Seq2Seq(enc, dec, device).to(device)
-    print(model)
+    model = get_model(INPUT_DIM, OUTPUT_DIM, device=device)
 
     optimizer = optim.Adam(model.parameters())
     criterion = nn.CrossEntropyLoss(ignore_index=TRG_PAD_IDX)
