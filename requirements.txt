@@ -1,3 +1,7 @@
+scapy
+tqdm
+torchtext
+
 # --------- linters --------- #
 pre-commit
 black
