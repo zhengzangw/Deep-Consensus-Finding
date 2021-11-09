@@ -23,6 +23,13 @@ Install dependencies
 pip install -r requirements.txt
 ```
 
+Build dataset
+```bash
+cd src
+python generate_DNA.py
+cd ..
+```
+
 Run scripts
 
 ```bash

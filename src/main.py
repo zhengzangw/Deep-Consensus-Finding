@@ -12,10 +12,11 @@ import torch.optim as optim
 from tqdm import tqdm
 
 from .dataset_nlp import load_multi30k
+from .dna_dataset import get_DNA_loader
 from .model import get_model
 
 SEED = 1234
-device = "cuda:0"
+device = "cuda:0" if torch.cuda.is_available() else 'cpu'
 
 N_EPOCHS = 10
 CLIP = 1
@@ -102,8 +103,11 @@ def test(model, iterator, criterion):
 
 
 def main(args):
-    train_dataloader, valid_dataloader, test_dataloader, dataset_info = load_multi30k(
-        device=device
+    # train_dataloader, valid_dataloader, test_dataloader, dataset_info = load_multi30k(
+    #     device=device
+    # )
+    train_dataloader, valid_dataloader, test_dataloader, dataset_info = get_DNA_loader(
+        root='./src/data', device=device, batch_size=128
     )
     # dataloader produce (src, tgt)
     # src: [Seq_len, batch size, id], for DNA strand, id in [4 * max cluster size]
@@ -111,7 +115,7 @@ def main(args):
 
     INPUT_DIM = dataset_info["input_dim"]
     OUTPUT_DIM = dataset_info["output_dim"]
-    TRG_PAD_IDX = dataset_info["output_pad"]
+    TRG_PAD_IDX = dataset_info["output_pad"] if 'output_pad' in dataset_info.keys() else -100
     model = get_model(INPUT_DIM, OUTPUT_DIM, device=device)
 
     optimizer = optim.Adam(model.parameters())
