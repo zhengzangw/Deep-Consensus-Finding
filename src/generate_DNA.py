@@ -40,7 +40,8 @@ def generate_noise_strands(args):
         lines = inf.readlines()
         for j, line in enumerate(lines, start=1):
             line = line.strip()
-            num_strands = random.randint(args.max_t - 2, args.max_t)
+            # num_strands = random.randint(args.max_t - 2, args.max_t)
+            num_strands = args.max_t
             outf.write(f"# {j} {num_strands}\n")
             for _ in range(num_strands):
                 s = gen_sample_dj(line, args.subp, args.delp, args.insp) + "\n"
@@ -65,7 +66,7 @@ def build_meta(max_len, max_t):
             assert line.startswith("#")
             num_strands = int(line.split()[-1])
             idx += 1
-            strands = noise_lines[idx : idx + num_strands]
+            strands = noise_lines[idx: idx + num_strands]
 
             # update vin
             paddings = len(DICT2) * torch.ones(max_t, max_len, dtype=torch.int)
@@ -93,7 +94,7 @@ def main():
     parser.add_argument("--max-len", type=int, default=120)
     parser.add_argument("--max-t", type=int, default=8)
     parser.add_argument(
-        "--num-strands", type=list, default=[1000, 200, 200], help="[num_train, num_val, num_test]"
+        "--num-strands", type=list, default=[10000, 1000, 1000], help="[num_train, num_val, num_test]"
     )
 
     parser.add_argument("--subp", type=float, default=0.01)
