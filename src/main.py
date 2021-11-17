@@ -101,6 +101,7 @@ def test(model, iterator, criterion):
     test_loss = evaluate(model, iterator, criterion)
 
     print(f"| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |")
+    val(model, iterator)
 
 
 def main(args):
