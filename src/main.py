@@ -13,10 +13,11 @@ from tqdm import tqdm
 
 from .dataset_nlp import load_multi30k
 from .dna_dataset import get_DNA_loader
+from .inference_dna import val
 from .model import get_model
 
 SEED = 1234
-device = "cuda:0" if torch.cuda.is_available() else 'cpu'
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 N_EPOCHS = 10
 CLIP = 1
@@ -41,7 +42,7 @@ def train(model, iterator, optimizer, criterion, clip):
 
     model.train()
     epoch_loss = 0
-    for i, batch in tqdm(enumerate(iterator)):
+    for i, batch in enumerate(iterator):
         src, trg = batch
         optimizer.zero_grad()
         output = model(src, trg)
@@ -107,7 +108,7 @@ def main(args):
     #     device=device
     # )
     train_dataloader, valid_dataloader, test_dataloader, dataset_info = get_DNA_loader(
-        root='./src/data', device=device, batch_size=128
+        root="./data", device=device, batch_size=128
     )
     # dataloader produce (src, tgt)
     # src: [Seq_len, batch size, id], for DNA strand, id in [4 * max cluster size]
@@ -115,7 +116,7 @@ def main(args):
 
     INPUT_DIM = dataset_info["input_dim"]
     OUTPUT_DIM = dataset_info["output_dim"]
-    TRG_PAD_IDX = dataset_info["output_pad"] if 'output_pad' in dataset_info.keys() else -100
+    TRG_PAD_IDX = dataset_info["output_pad"] if "output_pad" in dataset_info.keys() else -100
     model = get_model(INPUT_DIM, OUTPUT_DIM, device=device)
 
     optimizer = optim.Adam(model.parameters())
@@ -139,8 +140,9 @@ def main(args):
             torch.save(model.state_dict(), "tut1-model.pt")
 
         print(f"Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s")
-        print(f"\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}")
-        print(f"\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}")
+        print(f"Train Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}")
+        print(f"Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}")
+        val(model, valid_dataloader)
 
     test(model, test_dataloader, criterion)
 

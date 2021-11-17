@@ -25,9 +25,7 @@ pip install -r requirements.txt
 
 Build dataset
 ```bash
-cd src
-python generate_DNA.py
-cd ..
+python -m src.generate_DNA
 ```
 
 Run scripts
