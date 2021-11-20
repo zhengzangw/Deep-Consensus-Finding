@@ -100,6 +100,20 @@ def build_meta(max_len, max_t):
     torch.save(meta, "./data/meta_info.pth")
 
 
+def build_meta_v2(max_len, max_t):
+    meta = {"max_len": max_len, "max_t": max_t, "dict": DICT2}
+    # vin
+    # vin = {"<BOS>": 0, "<EOS>": 1, 'A': 2, 'C': 3, 'G': 4, 'T': 5, '<PAD>': 6}
+    vin = {"A": 0, "C": 1, "G": 2, "T": 3}
+    meta['vin'] = vin
+
+    # vout
+    vout = {"A": 0, "C": 1, "G": 2, "T": 3}
+    meta["vout"] = vout
+
+    torch.save(meta, "./data/meta_info_v2.pth")
+
+
 def main():
     parser = argparse.ArgumentParser("Noise generation")
     parser.add_argument("--max-len", type=int, default=120)
@@ -124,7 +138,8 @@ def main():
 
     # build meta; include max_len, max_t, vin, DICT
     # Add a const to max_len in case insertion > max_len
-    build_meta(args.max_len+10, args.max_t)
+    # build_meta(args.max_len+10, args.max_t)
+    build_meta_v2(args.max_len, args.max_t)
 
 
 if __name__ == "__main__":
