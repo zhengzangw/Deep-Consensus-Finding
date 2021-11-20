@@ -32,8 +32,8 @@ def val(model, test_dataloader):
         outputs = model(src_data, src_rev_data, tgt_data, teacher_forcing_ratio=0)
         pred = outputs.argmax(dim=-1)
 
-        pred = pred[1:-1].t()
-        label = tgt_data[1:-1].t()
+        pred = pred.t()
+        label = tgt_data.t()
 
         for i in range(len(pred)):
             pred_s = ids_to_strand(pred[i])

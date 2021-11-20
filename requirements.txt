@@ -1,6 +1,7 @@
 scapy
 tqdm
 torchtext
+einops
 
 # --------- linters --------- #
 pre-commit

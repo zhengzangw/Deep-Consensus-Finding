@@ -1,5 +1,6 @@
 import random
 
+import einops
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,32 +18,38 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
+NUM_STRAND = 8
+ENC_EMB_DIM = 4 * NUM_STRAND
+ENC_HID_DIM = 64
+DEC_EMB_DIM = 4
+DEC_HID_DIM = 64
+ENC_DROPOUT = 0
+DEC_DROPOUT = 0
+
+
 class Encoder(nn.Module):
     def __init__(self, input_dim, emb_dim, enc_hid_dim, dec_hid_dim, dropout):
         super().__init__()
-
-        self.embedding = nn.Embedding(input_dim, emb_dim)
 
         self.rnn = nn.GRU(emb_dim, enc_hid_dim)
         self.rnn_rev = nn.GRU(emb_dim, enc_hid_dim)
 
         self.fc = nn.Linear(enc_hid_dim * 2, dec_hid_dim)
 
-        self.dropout = nn.Dropout(dropout)
+        # self.dropout = nn.Dropout(dropout)
 
     def forward(self, src, src_rev):
-        # src = [src len, batch size]
+        # src = [#strand, src len, emb dim, batch size]
 
-        embedded = self.dropout(self.embedding(src))
-        embedded_rev = self.dropout(self.embedding(src_rev))
+        embedded = einops.rearrange(src, "s l d b -> l b (s d)")
+        embedded_rev = einops.rearrange(src_rev, "s l d b -> l b (s d)")
         # embedded = [src len, batch size, emb dim]
 
         outputs, hidden = self.rnn(embedded)
-        # outputs = [src len, batch size, hid dim * num directions]
-        # hidden = [n layers * num directions, batch size, hid dim]
         outputs_rev, hidden_rev = self.rnn_rev(embedded_rev)
         outputs_rev = outputs_rev.flip(0)
-        hidden_rev = hidden_rev.flip(0)
+        # outputs = [src len, batch size, hid dim * num directions]
+        # hidden = [n layers * num directions, batch size, hid dim]
 
         outputs = torch.concat((outputs, outputs_rev), dim=-1)
         hidden = torch.tanh(self.fc(torch.cat((hidden[0], hidden_rev[0]), dim=1)))
@@ -93,25 +100,19 @@ class Decoder(nn.Module):
         self.output_dim = output_dim
         self.attention = attention
 
-        self.embedding = nn.Embedding(output_dim, emb_dim)
-
         self.rnn = nn.GRU((enc_hid_dim * 2) + emb_dim, dec_hid_dim)
 
         self.fc_out = nn.Linear((enc_hid_dim * 2) + dec_hid_dim + emb_dim, output_dim)
 
-        self.dropout = nn.Dropout(dropout)
+        # self.dropout = nn.Dropout(dropout)
 
     def forward(self, input, hidden, encoder_outputs):
 
-        # input = [batch size]
+        # input = [batch size, emb dim]
         # hidden = [batch size, dec hid dim]
         # encoder_outputs = [src len, batch size, enc hid dim * 2]
 
-        input = input.unsqueeze(0)
-
-        # input = [1, batch size]
-
-        embedded = self.dropout(self.embedding(input))
+        embedded = input.unsqueeze(0)
 
         # embedded = [1, batch size, emb dim]
 
@@ -176,7 +177,7 @@ class Seq2Seq(nn.Module):
         # teacher_forcing_ratio is probability to use teacher forcing
         # e.g. if teacher_forcing_ratio is 0.75 we use teacher forcing 75% of the time
 
-        batch_size = src.shape[1]
+        batch_size = src.shape[-1]
         trg_len = trg.shape[0]
         trg_vocab_size = self.decoder.output_dim
 
@@ -188,14 +189,13 @@ class Seq2Seq(nn.Module):
         encoder_outputs, hidden = self.encoder(src, src_rev)
 
         # first input to the decoder is the <sos> tokens
-        input = trg[0, :]
+        input = torch.zeros((len(trg[0, :]), 4)).float().cuda()
 
-        for t in range(1, trg_len):
+        for t in range(trg_len):
 
             # insert input token embedding, previous hidden state and all encoder hidden states
             # receive output tensor (predictions) and new hidden state
             output, hidden = self.decoder(input, hidden, encoder_outputs)
-
             # place predictions in a tensor holding predictions for each token
             outputs[t] = output
 
@@ -208,16 +208,9 @@ class Seq2Seq(nn.Module):
             # if teacher forcing, use actual next token as next input
             # if not, use predicted token
             input = trg[t] if teacher_force else top1
+            input = F.one_hot(input, num_classes=4)
 
         return outputs
-
-
-ENC_EMB_DIM = 256
-ENC_HID_DIM = 512
-DEC_EMB_DIM = 256
-DEC_HID_DIM = 512
-ENC_DROPOUT = 0
-DEC_DROPOUT = 0
 
 
 def get_model(INPUT_DIM, OUTPUT_DIM, device):

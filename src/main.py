@@ -50,8 +50,8 @@ def train(model, iterator, optimizer, criterion, clip):
         # trg = [trg len, batch size]
         # output = [trg len, batch size, output dim]
         output_dim = output.shape[-1]
-        output = output[1:].view(-1, output_dim)
-        trg = trg[1:].view(-1)
+        output = output.view(-1, output_dim)
+        trg = trg.view(-1)
 
         # trg = [(trg len - 1) * batch size]
         # output = [(trg len - 1) * batch size, output dim]
@@ -82,8 +82,8 @@ def evaluate(model, iterator, criterion):
         # output = [trg len, batch size, output dim]
 
         output_dim = output.shape[-1]
-        output = output[1:].view(-1, output_dim)
-        trg = trg[1:].view(-1)
+        output = output.view(-1, output_dim)
+        trg = trg.view(-1)
 
         # trg = [(trg len - 1) * batch size]
         # output = [(trg len - 1) * batch size, output dim]
