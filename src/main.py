@@ -43,9 +43,9 @@ def train(model, iterator, optimizer, criterion, clip):
     model.train()
     epoch_loss = 0
     for i, batch in enumerate(iterator):
-        src, trg = batch
+        src, src_rev, trg = batch
         optimizer.zero_grad()
-        output = model(src, trg)
+        output = model(src, src_rev, trg)
 
         # trg = [trg len, batch size]
         # output = [trg len, batch size, output dim]
@@ -74,9 +74,9 @@ def evaluate(model, iterator, criterion):
 
     for i, batch in enumerate(iterator):
 
-        src, trg = batch
+        src, src_rev, trg = batch
 
-        output = model(src, trg, 0)  # turn off teacher forcing
+        output = model(src, src_rev, trg, 0)  # turn off teacher forcing
 
         # trg = [trg len, batch size]
         # output = [trg len, batch size, output dim]
