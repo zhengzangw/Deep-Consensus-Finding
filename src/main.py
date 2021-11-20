@@ -12,7 +12,7 @@ import torch.optim as optim
 from tqdm import tqdm
 
 from .dataset_nlp import load_multi30k
-from .dna_dataset import get_DNA_loader
+from .dna_dataset_v2 import get_DNA_loader
 from .inference_dna import val
 from .model import get_model
 
