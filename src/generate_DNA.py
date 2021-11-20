@@ -116,11 +116,11 @@ def main():
     args = parser.parse_args()
     random.seed(args.seed)
 
-    # generate GT
-    generate_gt(args)
+    # # generate GT
+    # generate_gt(args)
 
-    # generate noisy strands
-    generate_noise_strands(args)
+    # # generate noisy strands
+    # generate_noise_strands(args)
 
     # build meta; include max_len, max_t, vin, DICT
     # Add a const to max_len in case insertion > max_len
