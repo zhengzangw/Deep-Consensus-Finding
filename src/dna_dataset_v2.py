@@ -3,7 +3,7 @@ import os
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-meta = torch.load("./data/meta_info.pth")
+meta = torch.load("./data/meta_info_v2.pth")
 # DICT = meta["dict"]  # {'A': 0, 'C': 1, 'G': 2, 'T': 3}
 char_dict = meta["dict"]  # {'A': 0, 'C': 1, 'G': 2, 'T': 3}
 MAX_LEN = meta["max_len"]  # max length of a strand; typically 120; add a const for insertion length > 120
