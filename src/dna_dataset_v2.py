@@ -78,7 +78,7 @@ def get_DNA_loader(root, device="cpu", batch_size=128):
             # label = [torch.tensor([vout["<BOS>"]]), label, torch.tensor([vout["<EOS>"]])]
             src_left.append(data_left)
             src_right.append(data_right)
-            tgt.append(torch.cat(label))
+            tgt.append(label)
         src_left = torch.stack(src_left, dim=-1).contiguous().to(device)  # (max_t, max_len, 4, bsz)
         src_right = torch.stack(src_right, dim=-1).contiguous().to(device)
         tgt = torch.stack(tgt, dim=-1).contiguous().to(device)  # (max_len, bsz)
@@ -96,4 +96,5 @@ def get_DNA_loader(root, device="cpu", batch_size=128):
 
 
 if __name__ == "__main__":
-    get_DNA_loader(root="./data")
+    train_dl = get_DNA_loader(root="./data", batch_size=2)[0]
+    data = next(iter(train_dl))
