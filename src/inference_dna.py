@@ -26,10 +26,10 @@ def val(model, test_dataloader):
         "acc_char": 0,
     }
     for t, data in enumerate(test_dataloader):
-        src_data, tgt_data = data
+        src_data, src_rev_data, tgt_data = data
         src_data = src_data.to(device)
         tgt_data = tgt_data.to(device)
-        outputs = model(src_data, tgt_data, teacher_forcing_ratio=0)
+        outputs = model(src_data, src_rev_data, tgt_data, teacher_forcing_ratio=0)
         pred = outputs.argmax(dim=-1)
 
         pred = pred[1:-1].t()

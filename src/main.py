@@ -19,7 +19,7 @@ from .model import get_model
 SEED = 1234
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-N_EPOCHS = 10
+N_EPOCHS = 100
 CLIP = 1
 
 
