@@ -56,7 +56,7 @@ class DNA_dataset_v2(Dataset):
             if align == 'left':
                 paddings[i][torch.arange(len_s), ids] = 1
             else:
-                paddings[i][torch.arange(len_s)+MAX_T-len_s, ids] = 1
+                paddings[i][torch.arange(len_s)+MAX_LEN-len_s, ids] = 1
 
         return paddings
 
