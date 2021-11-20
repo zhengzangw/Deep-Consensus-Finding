@@ -23,35 +23,29 @@ class Encoder(nn.Module):
 
         self.embedding = nn.Embedding(input_dim, emb_dim)
 
-        self.rnn = nn.GRU(emb_dim, enc_hid_dim, bidirectional=True)
+        self.rnn = nn.GRU(emb_dim, enc_hid_dim)
+        self.rnn_rev = nn.GRU(emb_dim, enc_hid_dim)
 
         self.fc = nn.Linear(enc_hid_dim * 2, dec_hid_dim)
 
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, src):
-
+    def forward(self, src, src_rev):
         # src = [src len, batch size]
 
         embedded = self.dropout(self.embedding(src))
-
+        embedded_rev = self.dropout(self.embedding(src_rev))
         # embedded = [src len, batch size, emb dim]
 
         outputs, hidden = self.rnn(embedded)
-
         # outputs = [src len, batch size, hid dim * num directions]
         # hidden = [n layers * num directions, batch size, hid dim]
+        outputs_rev, hidden_rev = self.rnn_rev(embedded_rev)
+        outputs_rev = outputs_rev.flip(0)
+        hidden_rev = hidden_rev.flip(0)
 
-        # hidden is stacked [forward_1, backward_1, forward_2, backward_2, ...]
-        # outputs are always from the last layer
-
-        # hidden [-2, :, : ] is the last of the forwards RNN
-        # hidden [-1, :, : ] is the last of the backwards RNN
-
-        # initial decoder hidden is final hidden state of the forwards and backwards
-        #  encoder RNNs fed through a linear layer
-        hidden = torch.tanh(self.fc(torch.cat((hidden[-2, :, :], hidden[-1, :, :]), dim=1)))
-
+        outputs = torch.concat((outputs, outputs_rev), dim=-1)
+        hidden = torch.tanh(self.fc(torch.cat((hidden[0], hidden_rev[0]), dim=1)))
         # outputs = [src len, batch size, enc hid dim * 2]
         # hidden = [batch size, dec hid dim]
 
@@ -175,7 +169,7 @@ class Seq2Seq(nn.Module):
         self.decoder = decoder
         self.device = device
 
-    def forward(self, src, trg, teacher_forcing_ratio=0.5):
+    def forward(self, src, src_rev, trg, teacher_forcing_ratio=0.5):
 
         # src = [src len, batch size]
         # trg = [trg len, batch size]
@@ -191,7 +185,7 @@ class Seq2Seq(nn.Module):
 
         # encoder_outputs is all hidden states of the input sequence, back and forwards
         # hidden is the final forward and backward hidden states, passed through a linear layer
-        encoder_outputs, hidden = self.encoder(src)
+        encoder_outputs, hidden = self.encoder(src, src_rev)
 
         # first input to the decoder is the <sos> tokens
         input = trg[0, :]
