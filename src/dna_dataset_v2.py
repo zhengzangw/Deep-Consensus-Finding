@@ -82,8 +82,6 @@ def get_DNA_loader(root, device="cpu", batch_size=128):
         src_left = torch.stack(src_left, dim=-1).contiguous().to(device)  # (max_t, max_len, 4, bsz)
         src_right = torch.stack(src_right, dim=-1).contiguous().to(device)
         tgt = torch.stack(tgt, dim=-1).contiguous().to(device)  # (max_len, bsz)
-        print(src_left.shape, src_right.shape)
-        exit()
         return src_left, src_right, tgt
 
     train_ds = DNA_dataset_v2(root=root, split="train")
