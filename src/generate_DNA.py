@@ -138,7 +138,7 @@ def main():
 
     # build meta; include max_len, max_t, vin, DICT
     # Add a const to max_len in case insertion > max_len
-    # build_meta(args.max_len+10, args.max_t)
+    # build_meta(args.max_len, args.max_t)
     build_meta_v2(args.max_len, args.max_t)
 
 

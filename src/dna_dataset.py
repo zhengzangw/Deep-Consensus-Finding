@@ -103,4 +103,5 @@ def get_DNA_loader(root, device="cpu", batch_size=128):
 
 
 if __name__ == "__main__":
-    get_DNA_loader(root="./data")
+    train_dl = get_DNA_loader(root="./data", batch_size=2)[0]
+    data = next(iter(train_dl))
