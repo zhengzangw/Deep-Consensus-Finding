@@ -48,15 +48,16 @@ class DNA_dataset_v2(Dataset):
 
     def strands_to_onehot(self, strands, align='left'):
         assert align in ['left', 'right']
-        paddings = torch.zeros(MAX_T, MAX_LEN, len(vin), dtype=torch.int)
+        paddings = torch.zeros(MAX_T, MAX_LEN, len(vin))
         for i, s in enumerate(strands):
             s = s.strip()[:MAX_LEN]
             len_s = len(s)
-            ids = torch.tensor(list(map(vin.get, s)))
             if align == 'left':
+                ids = torch.tensor(list(map(vin.get, s)))
                 paddings[i][torch.arange(len_s), ids] = 1
             else:
-                paddings[i][torch.arange(len_s)+MAX_LEN-len_s, ids] = 1
+                ids = torch.tensor(list(map(vin.get, s[::-1])))
+                paddings[i][torch.arange(len_s), ids] = 1
 
         return paddings
 
