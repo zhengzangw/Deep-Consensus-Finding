@@ -69,10 +69,21 @@ def build_meta(max_len, max_t):
             strands = noise_lines[idx: idx + num_strands]
 
             # update vin
+            # left align
             paddings = len(DICT2) * torch.ones(max_t, max_len, dtype=torch.int)
             for i, s in enumerate(strands):
                 s = s.strip()[:max_len]
                 paddings[i][: len(s)] = torch.tensor(list(map(DICT2.get, s)))
+            for pos in range(max_len):
+                num = int(sum(mul * paddings[:, pos]))
+                if num not in vin.keys():
+                    vin[num] = cnt
+                    cnt += 1
+            # right align
+            paddings = len(DICT2) * torch.ones(max_t, max_len, dtype=torch.int)
+            for i, s in enumerate(strands):
+                s = s.strip()[:max_len]
+                paddings[i][-len(s):] = torch.tensor(list(map(DICT2.get, s)))
             for pos in range(max_len):
                 num = int(sum(mul * paddings[:, pos]))
                 if num not in vin.keys():
@@ -112,7 +123,8 @@ def main():
     generate_noise_strands(args)
 
     # build meta; include max_len, max_t, vin, DICT
-    build_meta(args.max_len, args.max_t)
+    # Add a const to max_len in case insertion > max_len
+    build_meta(args.max_len+10, args.max_t)
 
 
 if __name__ == "__main__":
