@@ -25,21 +25,6 @@ class DNA_dataset(Dataset):
         noisy_f = open(os.path.join(split_dir, "noisy_strands.txt"), "r")
         cluster_f = open(os.path.join(split_dir, "clusters.txt"), "r")
 
-        # left align
-        noise_lines = noisy_f.readlines()
-        idx = 0
-        while idx < len(noise_lines):
-            line = noise_lines[idx].strip()
-            assert line.startswith("#")
-            num_strands = int(line.split()[-1])
-            idx += 1
-            strands = noise_lines[idx: idx + num_strands]
-            word_ids = self.strands_to_id(strands, idx)  # tensor: [MAX_LEN]
-            self.data.append(word_ids)
-
-            idx += num_strands
-
-        # right align
         noise_lines = noisy_f.readlines()
         idx = 0
         while idx < len(noise_lines):
