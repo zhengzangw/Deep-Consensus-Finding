@@ -19,24 +19,26 @@ def count_parameters(model):
 
 
 NUM_STRAND = 8
-ENC_EMB_DIM = 4 * NUM_STRAND
+ENC_EMB_DIM = 64
 ENC_HID_DIM = 64
-DEC_EMB_DIM = 4
+DEC_EMB_DIM = 64
 DEC_HID_DIM = 64
-ENC_DROPOUT = 0
-DEC_DROPOUT = 0
+ENC_DROPOUT = 0.1
+DEC_DROPOUT = 0.1
 
 
 class Encoder(nn.Module):
     def __init__(self, input_dim, emb_dim, enc_hid_dim, dec_hid_dim, dropout):
         super().__init__()
 
+        self.embed = nn.Linear(NUM_STRAND * 4, emb_dim)
+
         self.rnn = nn.GRU(emb_dim, enc_hid_dim)
         self.rnn_rev = nn.GRU(emb_dim, enc_hid_dim)
 
         self.fc = nn.Linear(enc_hid_dim * 2, dec_hid_dim)
 
-        # self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, src, src_rev):
         # src = [#strand, src len, emb dim, batch size]
@@ -44,6 +46,9 @@ class Encoder(nn.Module):
         embedded = einops.rearrange(src, "s l d b -> l b (s d)")
         embedded_rev = einops.rearrange(src_rev, "s l d b -> l b (s d)")
         # embedded = [src len, batch size, emb dim]
+
+        embedded = self.embed(self.dropout(embedded))
+        embedded_rev = self.embed(self.dropout(embedded_rev))
 
         outputs, hidden = self.rnn(embedded)
         outputs_rev, hidden_rev = self.rnn_rev(embedded_rev)
@@ -100,6 +105,7 @@ class Decoder(nn.Module):
         self.output_dim = output_dim
         self.attention = attention
 
+        self.embed = nn.Linear(4, emb_dim)
         self.rnn = nn.GRU((enc_hid_dim * 2) + emb_dim, dec_hid_dim)
 
         self.fc_out = nn.Linear((enc_hid_dim * 2) + dec_hid_dim + emb_dim, output_dim)
@@ -113,6 +119,7 @@ class Decoder(nn.Module):
         # encoder_outputs = [src len, batch size, enc hid dim * 2]
 
         embedded = input.unsqueeze(0)
+        embedded = self.embed(embedded)
 
         # embedded = [1, batch size, emb dim]
 
@@ -208,7 +215,7 @@ class Seq2Seq(nn.Module):
             # if teacher forcing, use actual next token as next input
             # if not, use predicted token
             input = trg[t] if teacher_force else top1
-            input = F.one_hot(input, num_classes=4)
+            input = F.one_hot(input, num_classes=4).float()
 
         return outputs
 

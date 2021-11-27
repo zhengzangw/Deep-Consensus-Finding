@@ -21,6 +21,8 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 N_EPOCHS = 100
 CLIP = 1
+BATCH_SIZE = 256
+LR = 0.001
 
 
 def init_seed(seed=SEED):
@@ -75,7 +77,6 @@ def evaluate(model, iterator, criterion):
     for i, batch in enumerate(iterator):
 
         src, src_rev, trg = batch
-
         output = model(src, src_rev, trg, 0)  # turn off teacher forcing
 
         # trg = [trg len, batch size]
@@ -109,7 +110,7 @@ def main(args):
     #     device=device
     # )
     train_dataloader, valid_dataloader, test_dataloader, dataset_info = get_DNA_loader(
-        root="./data", device=device, batch_size=128
+        root="./data", device=device, batch_size=BATCH_SIZE
     )
     # dataloader produce (src, tgt)
     # src: [Seq_len, batch size, id], for DNA strand, id in [4 * max cluster size]
@@ -120,7 +121,7 @@ def main(args):
     TRG_PAD_IDX = dataset_info["output_pad"] if "output_pad" in dataset_info.keys() else -100
     model = get_model(INPUT_DIM, OUTPUT_DIM, device=device)
 
-    optimizer = optim.Adam(model.parameters())
+    optimizer = optim.Adam(model.parameters(), lr=LR)
     criterion = nn.CrossEntropyLoss(ignore_index=TRG_PAD_IDX)
 
     best_valid_loss = float("inf")

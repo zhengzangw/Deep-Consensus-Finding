@@ -66,7 +66,7 @@ def build_meta(max_len, max_t):
             assert line.startswith("#")
             num_strands = int(line.split()[-1])
             idx += 1
-            strands = noise_lines[idx: idx + num_strands]
+            strands = noise_lines[idx : idx + num_strands]
 
             # update vin
             # left align
@@ -83,7 +83,7 @@ def build_meta(max_len, max_t):
             paddings = len(DICT2) * torch.ones(max_t, max_len, dtype=torch.int)
             for i, s in enumerate(strands):
                 s = s.strip()[:max_len]
-                paddings[i][-len(s):] = torch.tensor(list(map(DICT2.get, s)))
+                paddings[i][-len(s) :] = torch.tensor(list(map(DICT2.get, s)))
             for pos in range(max_len):
                 num = int(sum(mul * paddings[:, pos]))
                 if num not in vin.keys():
@@ -105,7 +105,7 @@ def build_meta_v2(max_len, max_t):
     # vin
     # vin = {"<BOS>": 0, "<EOS>": 1, 'A': 2, 'C': 3, 'G': 4, 'T': 5, '<PAD>': 6}
     vin = {"A": 0, "C": 1, "G": 2, "T": 3}
-    meta['vin'] = vin
+    meta["vin"] = vin
 
     # vout
     vout = {"A": 0, "C": 1, "G": 2, "T": 3}
@@ -115,11 +115,16 @@ def build_meta_v2(max_len, max_t):
 
 
 def main():
+    # python -m src.generate_DNA --subp 0.05 --delp 0.05 --insp 0.05
     parser = argparse.ArgumentParser("Noise generation")
     parser.add_argument("--max-len", type=int, default=120)
     parser.add_argument("--max-t", type=int, default=8)
     parser.add_argument(
-        "--num-strands", type=list, default=[10000, 1000, 1000], help="[num_train, num_val, num_test]"
+        "--num-strands",
+        type=list,
+        nargs="+",
+        default=[50000, 1000, 1000],
+        help="[num_train, num_val, num_test]",
     )
 
     parser.add_argument("--subp", type=float, default=0.01)
@@ -131,10 +136,10 @@ def main():
     random.seed(args.seed)
 
     # # generate GT
-    # generate_gt(args)
+    generate_gt(args)
 
     # # generate noisy strands
-    # generate_noise_strands(args)
+    generate_noise_strands(args)
 
     # build meta; include max_len, max_t, vin, DICT
     # Add a const to max_len in case insertion > max_len

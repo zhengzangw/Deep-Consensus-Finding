@@ -3,7 +3,7 @@
 import torch
 from tqdm import tqdm
 
-from .dna_dataset import get_DNA_loader
+from .dna_dataset_v2 import get_DNA_loader
 from .model import get_model
 
 device = "cuda:0"
@@ -27,8 +27,6 @@ def val(model, test_dataloader):
     }
     for t, data in enumerate(test_dataloader):
         src_data, src_rev_data, tgt_data = data
-        src_data = src_data.to(device)
-        tgt_data = tgt_data.to(device)
         outputs = model(src_data, src_rev_data, tgt_data, teacher_forcing_ratio=0)
         pred = outputs.argmax(dim=-1)
 
@@ -60,7 +58,7 @@ Acc (char): {metric["acc_char"] / metric["total_char"] * 100:.4f}% ({metric["acc
 
 
 def main(args=None):
-    _, _, test_dataloader, dataset_info = get_DNA_loader(root="./data", device="cpu")
+    _, _, test_dataloader, dataset_info = get_DNA_loader(root="./data", device=device)
 
     INPUT_DIM = dataset_info["input_dim"]
     OUTPUT_DIM = dataset_info["output_dim"]
