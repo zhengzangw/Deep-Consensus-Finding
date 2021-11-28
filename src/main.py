@@ -14,14 +14,14 @@ from tqdm import tqdm
 from .dataset_nlp import load_multi30k
 from .dna_dataset_v2 import get_DNA_loader
 from .inference_dna import val
-from .model import get_model
+from .model import get_model_2 as get_model
 
 SEED = 1234
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-N_EPOCHS = 100
+N_EPOCHS = 20
 CLIP = 1
-BATCH_SIZE = 256
+BATCH_SIZE = 64
 LR = 0.001
 
 
@@ -40,7 +40,7 @@ def epoch_time(start_time, end_time):
     return elapsed_mins, elapsed_secs
 
 
-def train(model, iterator, optimizer, criterion, clip):
+def train(model, iterator, optimizer, criterion, clip, scheduler=None):
 
     model.train()
     epoch_loss = 0
@@ -65,6 +65,10 @@ def train(model, iterator, optimizer, criterion, clip):
         optimizer.step()
         epoch_loss += loss.item()
 
+        if scheduler:
+            scheduler.step()
+
+    print(f"LR: {scheduler.get_last_lr()[0]:.6f}")
     return epoch_loss / len(iterator)
 
 
@@ -121,7 +125,12 @@ def main(args):
     TRG_PAD_IDX = dataset_info["output_pad"] if "output_pad" in dataset_info.keys() else -100
     model = get_model(INPUT_DIM, OUTPUT_DIM, device=device)
 
-    optimizer = optim.Adam(model.parameters(), lr=LR)
+    model.load_state_dict(torch.load("tut1-model.pt"))
+
+    optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=1e-5)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, (N_EPOCHS + 5) * 100000 // BATCH_SIZE
+    )
     criterion = nn.CrossEntropyLoss(ignore_index=TRG_PAD_IDX)
 
     best_valid_loss = float("inf")
@@ -130,7 +139,9 @@ def main(args):
 
         start_time = time.time()
 
-        train_loss = train(model, train_dataloader, optimizer, criterion, CLIP)
+        train_loss = train(
+            model, train_dataloader, optimizer, criterion, CLIP, scheduler=scheduler
+        )
         valid_loss = evaluate(model, valid_dataloader, criterion)
 
         end_time = time.time()

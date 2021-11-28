@@ -26,6 +26,45 @@ DEC_HID_DIM = 64
 ENC_DROPOUT = 0.1
 DEC_DROPOUT = 0.1
 
+RNN_CLS = nn.GRU
+
+
+class Predictor(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+        hidden_size = 512
+        embed_size = 4
+
+        # self.embed = nn.Linear(4, embed_size)
+
+        self.rnn = RNN_CLS(embed_size, hidden_size)
+        self.rnn_rev = RNN_CLS(embed_size, hidden_size)
+
+        self.attn = nn.Linear(hidden_size, 1)
+        self.fc = nn.Linear(hidden_size, 4)
+        self.dropout = nn.Dropout(0.1)
+
+    def forward(self, src, src_rev, *args, **kwargs):
+        embedded = src.sum(dim=0)
+        embedded = einops.rearrange(embedded, "l d b -> l b d")
+        # embedded = self.embed(embedded)
+
+        embedded_rev = src_rev.sum(dim=0)
+        embedded_rev = einops.rearrange(embedded_rev, "l d b -> l b d")
+        # embedded_rev = self.embed(embedded_rev)
+
+        outputs, _ = self.rnn(embedded)
+        outputs_rev, _ = self.rnn_rev(embedded_rev)
+        outputs_rev = outputs_rev.flip(0)
+
+        outputs = outputs + outputs_rev
+        # [length, bs, dim * 2]
+
+        outputs = self.dropout(outputs)
+        outputs = self.fc(outputs)
+        return outputs
+
 
 class Encoder(nn.Module):
     def __init__(self, input_dim, emb_dim, enc_hid_dim, dec_hid_dim, dropout):
@@ -226,5 +265,11 @@ def get_model(INPUT_DIM, OUTPUT_DIM, device):
     dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT, attn)
 
     model = Seq2Seq(enc, dec, device).to(device)
+    print(model)
+    return model
+
+
+def get_model_2(INPUT_DIM, OUTPUT_DIM, device):
+    model = Predictor().to(device)
     print(model)
     return model

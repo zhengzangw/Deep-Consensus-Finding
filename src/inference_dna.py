@@ -4,7 +4,7 @@ import torch
 from tqdm import tqdm
 
 from .dna_dataset_v2 import get_DNA_loader
-from .model import get_model
+from .model import get_model_2 as get_model
 
 device = "cuda:0"
 keys = ["A", "C", "G", "T", "<B>", "<E>"]
