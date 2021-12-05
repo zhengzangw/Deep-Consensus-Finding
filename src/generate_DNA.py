@@ -115,7 +115,7 @@ def build_meta_v2(max_len, max_t):
 
 
 def main():
-    # python -m src.generate_DNA --subp 0.02 --delp 0.02 --insp 0.02
+    # python -m src.generate_DNA --subp 0.013 --delp 0.013 --insp 0.013
     parser = argparse.ArgumentParser("Noise generation")
     parser.add_argument("--max-len", type=int, default=120)
     parser.add_argument("--max-t", type=int, default=8)
@@ -123,7 +123,7 @@ def main():
         "--num-strands",
         type=list,
         nargs="+",
-        default=[100000, 1000, 1000],
+        default=[50000, 1000, 1000],
         help="[num_train, num_val, num_test]",
     )
 

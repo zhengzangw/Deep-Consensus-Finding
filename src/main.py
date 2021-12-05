@@ -125,7 +125,8 @@ def main(args):
     TRG_PAD_IDX = dataset_info["output_pad"] if "output_pad" in dataset_info.keys() else -100
     model = get_model(INPUT_DIM, OUTPUT_DIM, device=device)
 
-    model.load_state_dict(torch.load("tut1-model.pt"))
+    if args.load:
+        model.load_state_dict(torch.load("tut1-model.pt"))
 
     optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=1e-5)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(
@@ -163,6 +164,7 @@ def main(args):
 def parseargs(arg=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", default="default", type=str, help="Name of experiments.")
+    parser.add_argument("--load", action="store_true")
     args = parser.parse_args(arg)
     return args
 
